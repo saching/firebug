@@ -748,7 +748,6 @@ var fbs =
         fbs.restoreBreakpoints();
 
         this.onDebugRequests = 0;  // the number of times we called onError but did not call onDebug
-        fbs._lastErrorDebuggr = null;
 
 
         if (FBTrace.DBG_FBS_ERRORS)
@@ -2212,23 +2211,6 @@ var fbs =
         else
         {
             delete fbs._lastErrorCaller; // throw is not recursion either
-        }
-
-        if (this.showStackTrace)  // store these in case the throw is not caught
-        {
-            var debuggr = this.findDebugger(frame);  // sets debuggr.breakContext
-            if (debuggr)
-            {
-                // https://bugzilla.mozilla.org/show_bug.cgi?id=669730
-                //fbs._lastErrorScript = frame.script;
-                //fbs._lastErrorLine = frame.line;
-                //fbs._lastErrorDebuggr = debuggr;
-                //fbs._lastErrorContext = debuggr.breakContext; // XXXjjb this is bad API
-            }
-            else
-            {
-                delete fbs._lastErrorDebuggr;
-            }
         }
 
         //if (fbs.trackThrowCatch)

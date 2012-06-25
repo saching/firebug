@@ -365,6 +365,12 @@ var Errors = Firebug.Errors = Obj.extend(Firebug.Module,
         if (object.columnNumber > 0)
             error.colNumber = object.columnNumber;
 
+        if (checkForException(context, object))
+        {
+            context = getExceptionContext(context, object);
+            correctLineNumbersOnExceptions(object, error);
+        }
+
         if (Firebug.showStackTrace && Firebug.errorStackTrace)
         {
             // Firebug.errorStackTrace is set in onError (JSD hook).
@@ -377,20 +383,9 @@ var Errors = Firebug.Errors = Obj.extend(Firebug.Module,
             //var trace = Firebug.errorStackTrace;
             //var frame = (trace.frames && trace.frames[0]) ? trace.frames[0] : null;
             //if (frame && frame.href == error.href && frame.line == error.lineNo)
-            {
+            //{
                 error.correctWithStackTrace(Firebug.errorStackTrace);
-            }
-            /*else
-            {
-                if (FBTrace.DBG_ERRORLOG)
-                    FBTrace.sysout("errors.logScriptError; Do not correct the stack Trace",
-                        {frame: frame, error: error});
-            }*/
-        }
-        else if (checkForUncaughtException(context, object))
-        {
-            context = getExceptionContext(context, object);
-            correctLineNumbersOnExceptions(object, error);
+            //}
         }
 
         var msgId = lessTalkMoreAction(context, object, isWarning);
@@ -831,39 +826,28 @@ function lessTalkMoreAction(context, object, isWarning)
     return msgId;
 }
 
-function checkForUncaughtException(context, object)
+function checkForException(context, object)
 {
     if (object.flags & object.exceptionFlag)
     {
         if (FBTrace.DBG_ERRORLOG)
             FBTrace.sysout("errors.observe is exception");
 
-        if (reUncaught.test(object.errorMessage))
+        if (context.thrownStackTrace)
         {
+            Firebug.errorStackTrace = context.thrownStackTrace;
+
             if (FBTrace.DBG_ERRORLOG)
-                FBTrace.sysout("uncaught exception matches " + reUncaught);
+                FBTrace.sysout("errors.observe trace.frames", context.thrownStackTrace.frames);
 
-            if (context.thrownStackTrace)
-            {
-                Firebug.errorStackTrace = context.thrownStackTrace;
-
-                if (FBTrace.DBG_ERRORLOG)
-                    FBTrace.sysout("errors.observe trace.frames", context.thrownStackTrace.frames);
-
-                delete context.thrownStackTrace;
-            }
-            else
-            {
-                 if (FBTrace.DBG_ERRORLOG)
-                    FBTrace.sysout("errors.observe NO context.thrownStackTrace");
-            }
-            return true;
+            delete context.thrownStackTrace;
         }
         else
         {
-            if (FBTrace.DBG_ERRORLOG)
-                FBTrace.sysout("errors.observe not an uncaught exception");
+             if (FBTrace.DBG_ERRORLOG)
+                FBTrace.sysout("errors.observe NO context.thrownStackTrace");
         }
+        return true;
     }
 
     delete context.thrownStackTrace;
@@ -872,7 +856,7 @@ function checkForUncaughtException(context, object)
 
 /**
  * Returns a parent window (outer window) for given error object (an object
- * that is passed to a consoleListener).
+ * that is passed into a consoleListener).
  * This method should be the primary way how to find the parent window for any
  * error object.
  *
@@ -919,7 +903,7 @@ function getErrorWindow(object)
 
 function getExceptionContext(context, object)
 {
-    var errorWin = getErrorWindow(object)
+    var errorWin = getErrorWindow(object);
     if (errorWin)
     {
         var errorContext = Firebug.connection.getContextByWindow(errorWin);
