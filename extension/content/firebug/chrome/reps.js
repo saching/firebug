@@ -3093,6 +3093,8 @@ FirebugReps.ErrorMessageObj.prototype =
 
     correctWithStackTrace: function(trace)
     {
+        FBTrace.sysout("correctWithStackTrace; " + trace, trace);
+
         var frame = trace.frames[0];
         if (frame)
         {
@@ -3104,6 +3106,8 @@ FirebugReps.ErrorMessageObj.prototype =
 
     correctSourcePoint: function(sourceName, lineNumber)
     {
+        FBTrace.sysout("correctSourcePoint; " + trace, trace);
+
         this.href = sourceName;
         this.lineNo = lineNumber;
     },

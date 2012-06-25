@@ -2178,7 +2178,7 @@ var fbs =
 
     onThrow: function(frame, type, rv)
     {
-        if ( isFilteredURL(frame.script.fileName) )
+        if (isFilteredURL(frame.script.fileName))
             return RETURN_CONTINUE_THROW;
 
         if (rv && rv.value && rv.value.isValid)
@@ -2231,7 +2231,7 @@ var fbs =
             }
         }
 
-        if (fbs.trackThrowCatch)
+        //if (fbs.trackThrowCatch)
         {
             if (FBTrace.DBG_FBS_ERRORS)
                 FBTrace.sysout("fbs.onThrow from tag:" + frame.script.tag + ":" +

@@ -1251,12 +1251,26 @@ Firebug.Debugger = Obj.extend(Firebug.ActivableModule,
             context = this.getContextByFrame(frame);
         }
 
-        if (FBTrace.DBG_BP)
+        var errorObject = rv.getWrappedValue ? Wrapper.unwrapIValue(rv) : rv;
+
+        if (FBTrace.DBG_ERRORLOG)
+        {
+            var lines = [];
+            var frames = StackFrame.getCorrectedStackTrace(frame, context).frames;
+            for (var i=0; i<frames.length; i++)
+                lines.push(frames[i].line + ", " + frames[i].fn);
+
             FBTrace.sysout("debugger.onThrow context:" + (context ? context.getName() :
-                "undefined"));
+                "undefined") + ", " + lines.join("; "), frames);
+            FBTrace.sysout("debugger.onThrow; Exception " + (Firebug.errorObject == errorObject), rv);
+        }
 
         if (!context)
             return RETURN_CONTINUE_THROW;
+
+        Firebug.errorObject = errorObject;
+
+        Firebug.errorStackTrace = StackFrame.getCorrectedStackTrace(frame, context);
 
         if (!FBS.trackThrowCatch)
             return RETURN_CONTINUE_THROW;
@@ -1267,6 +1281,7 @@ Firebug.Debugger = Obj.extend(Firebug.ActivableModule,
             if (!isCatch)
             {
                 context.thrownStackTrace = StackFrame.getCorrectedStackTrace(frame, context);
+
                 if (FBTrace.DBG_BP)
                     FBTrace.sysout("debugger.onThrow reset context.thrownStackTrace",
                         context.thrownStackTrace.frames);
@@ -1358,7 +1373,7 @@ Firebug.Debugger = Obj.extend(Firebug.ActivableModule,
 
         try
         {
-            if (FBTrace.DBG_ERRORS)
+            if (FBTrace.DBG_ERRORLOG)
                 FBTrace.sysout("debugger.onError: "+error.errorMessage+" in "+
                     (context?context.getName():"no context"), error);
 
@@ -1367,7 +1382,7 @@ Firebug.Debugger = Obj.extend(Firebug.ActivableModule,
 
             Firebug.errorStackTrace = StackFrame.getCorrectedStackTrace(frame, context);
 
-            if (FBTrace.DBG_ERRORS)
+            if (FBTrace.DBG_ERRORLOG)
                 FBTrace.sysout("debugger.onError; break=" + Firebug.breakOnErrors +
                     ", errorStackTrace:", Firebug.errorStackTrace);
 

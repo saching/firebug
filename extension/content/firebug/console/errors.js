@@ -349,6 +349,7 @@ var Errors = Firebug.Errors = Obj.extend(Firebug.Module,
         {
             FBTrace.sysout("errors.observe logScriptError " +
                 (Firebug.errorStackTrace ? "have " : "NO ") +
+                (Firebug.showStackTrace ? "show stack trace" : "do not show stack trace ") +
                 "errorStackTrace error object:",
                 {object: object, errorStackTrace: Firebug.errorStackTrace});
         }
@@ -371,12 +372,20 @@ var Errors = Firebug.Errors = Obj.extend(Firebug.Module,
             // happening here (e.g. onError is not executed for throws).
             // So, use the url and line number to check whether the remembered stack
             // corresponds to what the current error says (see issue 5400).
-            // Note that this can exclude come stacks:
+            // Note that this can exclude some stacks:
             // see https://bugzilla.mozilla.org/show_bug.cgi?id=703519
-            var trace = Firebug.errorStackTrace;
-            var frame = (trace.frames && trace.frames[0]) ? trace.frames[0] : null;
-            if (frame && frame.href == error.href && frame.line == error.lineNo)
-                error.correctWithStackTrace(trace);
+            //var trace = Firebug.errorStackTrace;
+            //var frame = (trace.frames && trace.frames[0]) ? trace.frames[0] : null;
+            //if (frame && frame.href == error.href && frame.line == error.lineNo)
+            {
+                error.correctWithStackTrace(Firebug.errorStackTrace);
+            }
+            /*else
+            {
+                if (FBTrace.DBG_ERRORLOG)
+                    FBTrace.sysout("errors.logScriptError; Do not correct the stack Trace",
+                        {frame: frame, error: error});
+            }*/
         }
         else if (checkForUncaughtException(context, object))
         {
